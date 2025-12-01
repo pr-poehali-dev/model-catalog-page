@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import Icon from '@/components/ui/icon';
 
 interface Model {
   id: number;
+  photo?: string;
   hairColor: string;
   bodyType: string;
   hairLength: string;
@@ -32,12 +33,21 @@ const generateModels = (): Model[] => {
 };
 
 const Index = () => {
-  const [models] = useState<Model[]>(generateModels());
+  const [models, setModels] = useState<Model[]>([]);
   const [selectedHairColor, setSelectedHairColor] = useState<string>('');
   const [selectedBodyType, setSelectedBodyType] = useState<string>('');
   const [selectedHairLength, setSelectedHairLength] = useState<string>('');
   const [selectedNationality, setSelectedNationality] = useState<string>('');
   const [showFilters, setShowFilters] = useState(true);
+
+  useEffect(() => {
+    const savedModels = localStorage.getItem('models');
+    if (savedModels) {
+      setModels(JSON.parse(savedModels));
+    } else {
+      setModels(generateModels());
+    }
+  }, []);
 
   const filteredModels = useMemo(() => {
     return models.filter((model) => {
@@ -69,19 +79,29 @@ const Index = () => {
                 {filteredModels.length} {filteredModels.length === 1 ? 'модель' : filteredModels.length < 5 ? 'модели' : 'моделей'} для ИИ фотосессий
               </p>
             </div>
-            <Button
-              variant={showFilters ? 'default' : 'outline'}
-              onClick={() => setShowFilters(!showFilters)}
-              className="gap-2"
-            >
-              <Icon name="Filter" size={18} />
-              Фильтры
-              {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center">
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => window.location.href = '/admin'}
+                className="gap-2"
+              >
+                <Icon name="Settings" size={18} />
+                Админ
+              </Button>
+              <Button
+                variant={showFilters ? 'default' : 'outline'}
+                onClick={() => setShowFilters(!showFilters)}
+                className="gap-2"
+              >
+                <Icon name="Filter" size={18} />
+                Фильтры
+                {activeFiltersCount > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -187,16 +207,24 @@ const Index = () => {
               className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-[1.02]"
             >
               <div className="relative aspect-[3/4] bg-gradient-to-br from-primary/10 to-accent/20">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center space-y-2 p-4">
-                    <div className="w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
-                      <Icon name="User" size={32} className="text-primary" />
+                {model.photo ? (
+                  <img
+                    src={model.photo}
+                    alt={`Модель ${model.id}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center space-y-2 p-4">
+                      <div className="w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
+                        <Icon name="User" size={32} className="text-primary" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Модель #{model.id.toString().padStart(3, '0')}
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Модель #{model.id.toString().padStart(3, '0')}
-                    </p>
                   </div>
-                </div>
+                )}
                 <div className="absolute top-2 right-2">
                   <Badge variant="secondary" className="text-xs font-medium">
                     #{model.id}
