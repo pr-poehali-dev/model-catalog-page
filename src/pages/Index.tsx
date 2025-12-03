@@ -51,25 +51,15 @@ const Index = () => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<Record<number, number>>({});
 
   useEffect(() => {
-    const savedModels = localStorage.getItem('models');
-    const savedFilters = localStorage.getItem('filters');
+    fetch('https://functions.poehali.dev/f72a0844-f274-400e-aec2-772ebc3a9106')
+      .then(res => res.json())
+      .then(data => setModels(data))
+      .catch(console.error);
     
-    if (savedModels) {
-      try {
-        setModels(JSON.parse(savedModels));
-      } catch {
-        localStorage.removeItem('models');
-      }
-    }
-    
-    if (savedFilters) {
-      try {
-        const parsedFilters = JSON.parse(savedFilters);
-        setFilters({...defaultFilters, ...parsedFilters});
-      } catch {
-        localStorage.removeItem('filters');
-      }
-    }
+    fetch('https://functions.poehali.dev/2bd93d3a-7865-4599-bd8a-780859652347')
+      .then(res => res.json())
+      .then(data => setFilters({...defaultFilters, ...data}))
+      .catch(console.error);
   }, []);
 
   const filteredModels = useMemo(() => {

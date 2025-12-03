@@ -51,19 +51,9 @@ const Admin = () => {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  const [models, setModels] = useState<ModelData[]>(() => {
-    const saved = localStorage.getItem('models');
-    if (!saved) return [];
-    
-    const parsed = JSON.parse(saved);
-    localStorage.removeItem('models');
-    return [];
-  });
-
-  const [filters, setFilters] = useState<FilterCategories>(() => {
-    const saved = localStorage.getItem('filters');
-    return saved ? JSON.parse(saved) : defaultFilters;
-  });
+  const [models, setModels] = useState<ModelData[]>([]);
+  const [filters, setFilters] = useState<FilterCategories>(defaultFilters);
+  const [loading, setLoading] = useState(false);
 
   const [newFilterValue, setNewFilterValue] = useState('');
   const [selectedFilterCategory, setSelectedFilterCategory] = useState<keyof FilterCategories>('faceTypes');
@@ -74,6 +64,29 @@ const Admin = () => {
       setIsAuthenticated(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadData();
+    }
+  }, [isAuthenticated]);
+
+  const loadData = async () => {
+    try {
+      const [modelsRes, filtersRes] = await Promise.all([
+        fetch('https://functions.poehali.dev/f72a0844-f274-400e-aec2-772ebc3a9106'),
+        fetch('https://functions.poehali.dev/2bd93d3a-7865-4599-bd8a-780859652347')
+      ]);
+      
+      const modelsData = await modelsRes.json();
+      const filtersData = await filtersRes.json();
+      
+      setModels(modelsData);
+      setFilters({...defaultFilters, ...filtersData});
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,7 +147,7 @@ const Admin = () => {
     setPreviewUrls(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleAddModel = () => {
+  const handleAddModel = async () => {
     if (previewUrls.length === 0) {
       alert('Добавьте хотя бы одну фотографию');
       return;
@@ -146,66 +159,130 @@ const Admin = () => {
       return;
     }
 
-    const newId = models.length > 0 ? Math.max(...models.map(m => m.id)) + 1 : 1;
-    const modelData: ModelData = {
-      id: newId,
-      photos: previewUrls,
-      faceType: newModel.faceType!,
-      eyeColor: newModel.eyeColor!,
-      skinColor: newModel.skinColor!,
-      bodyType: newModel.bodyType!,
-      hairColor: newModel.hairColor!,
-      hairLength: newModel.hairLength!,
-      hairType: newModel.hairType!,
-    };
+    setLoading(true);
+    try {
+      const response = await fetch('https://functions.poehali.dev/f72a0844-f274-400e-aec2-772ebc3a9106', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          photos: previewUrls,
+          faceType: newModel.faceType,
+          eyeColor: newModel.eyeColor,
+          skinColor: newModel.skinColor,
+          bodyType: newModel.bodyType,
+          hairColor: newModel.hairColor,
+          hairLength: newModel.hairLength,
+          hairType: newModel.hairType,
+        })
+      });
 
-    const updatedModels = [...models, modelData];
-    setModels(updatedModels);
-    localStorage.setItem('models', JSON.stringify(updatedModels));
-
-    setNewModel({
-      faceType: '',
-      eyeColor: '',
-      skinColor: '',
-      bodyType: '',
-      hairColor: '',
-      hairLength: '',
-      hairType: '',
-    });
-    setPreviewUrls([]);
-    setPhotoUrl('');
-    
-    const fileInput = document.getElementById('photo-upload') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
-  };
-
-  const handleDeleteModel = (id: number) => {
-    if (confirm('Вы уверены, что хотите удалить эту модель?')) {
-      const updatedModels = models.filter(m => m.id !== id);
-      setModels(updatedModels);
-      localStorage.setItem('models', JSON.stringify(updatedModels));
+      if (response.ok) {
+        await loadData();
+        setNewModel({
+          faceType: '',
+          eyeColor: '',
+          skinColor: '',
+          bodyType: '',
+          hairColor: '',
+          hairLength: '',
+          hairType: '',
+        });
+        setPreviewUrls([]);
+        setPhotoUrl('');
+        
+        const fileInput = document.getElementById('photo-upload') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        
+        alert('Модель добавлена!');
+      } else {
+        alert('Ошибка при добавлении модели');
+      }
+    } catch (error) {
+      console.error('Failed to add model:', error);
+      alert('Ошибка при добавлении модели');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAddFilter = () => {
+  const handleDeleteModel = async (id: number) => {
+    if (confirm('Вы уверены, что хотите удалить эту модель?')) {
+      setLoading(true);
+      try {
+        const response = await fetch(`https://functions.poehali.dev/f72a0844-f274-400e-aec2-772ebc3a9106?id=${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          await loadData();
+          alert('Модель удалена!');
+        } else {
+          alert('Ошибка при удалении модели');
+        }
+      } catch (error) {
+        console.error('Failed to delete model:', error);
+        alert('Ошибка при удалении модели');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleAddFilter = async () => {
     if (!newFilterValue.trim()) return;
     
     const updatedFilters = {
       ...filters,
       [selectedFilterCategory]: [...filters[selectedFilterCategory], newFilterValue.trim()]
     };
-    setFilters(updatedFilters);
-    localStorage.setItem('filters', JSON.stringify(updatedFilters));
-    setNewFilterValue('');
+    
+    setLoading(true);
+    try {
+      const response = await fetch('https://functions.poehali.dev/2bd93d3a-7865-4599-bd8a-780859652347', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedFilters)
+      });
+      
+      if (response.ok) {
+        setFilters(updatedFilters);
+        setNewFilterValue('');
+      } else {
+        alert('Ошибка при добавлении фильтра');
+      }
+    } catch (error) {
+      console.error('Failed to add filter:', error);
+      alert('Ошибка при добавлении фильтра');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteFilter = (category: keyof FilterCategories, value: string) => {
+  const handleDeleteFilter = async (category: keyof FilterCategories, value: string) => {
     const updatedFilters = {
       ...filters,
       [category]: filters[category].filter(v => v !== value)
     };
-    setFilters(updatedFilters);
-    localStorage.setItem('filters', JSON.stringify(updatedFilters));
+    
+    setLoading(true);
+    try {
+      const response = await fetch('https://functions.poehali.dev/2bd93d3a-7865-4599-bd8a-780859652347', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedFilters)
+      });
+      
+      if (response.ok) {
+        setFilters(updatedFilters);
+      } else {
+        alert('Ошибка при удалении фильтра');
+      }
+    } catch (error) {
+      console.error('Failed to delete filter:', error);
+      alert('Ошибка при удалении фильтра');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filterCategoryNames: Record<keyof FilterCategories, string> = {
@@ -507,9 +584,9 @@ const Admin = () => {
                     </div>
                   </div>
 
-                  <Button onClick={handleAddModel} className="w-full gap-2" size="lg">
-                    <Icon name="Plus" size={18} />
-                    Добавить модель
+                  <Button onClick={handleAddModel} className="w-full gap-2" size="lg" disabled={loading}>
+                    <Icon name={loading ? "Loader2" : "Plus"} size={18} className={loading ? "animate-spin" : ""} />
+                    {loading ? 'Добавление...' : 'Добавить модель'}
                   </Button>
                 </div>
               </Card>

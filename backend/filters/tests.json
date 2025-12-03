@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Get filters",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "faceTypes": "array",
+        "eyeColors": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
