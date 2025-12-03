@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,10 +27,40 @@ const hairLengths = ['Короткие', 'Средние', 'Длинные', 'О
 const nationalities = ['Европейская', 'Азиатская', 'Латиноамериканская', 'Африканская', 'Смешанная'];
 
 const Admin = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
   const [models, setModels] = useState<ModelData[]>(() => {
     const saved = localStorage.getItem('models');
     return saved ? JSON.parse(saved) : [];
   });
+
+  useEffect(() => {
+    const authToken = sessionStorage.getItem('adminAuth');
+    if (authToken === 'authenticated') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (username === 'admin' && password === 'admin1357') {
+      setIsAuthenticated(true);
+      sessionStorage.setItem('adminAuth', 'authenticated');
+      setLoginError('');
+    } else {
+      setLoginError('Неверный логин или пароль');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem('adminAuth');
+    setUsername('');
+    setPassword('');
+  };
 
   const [newModel, setNewModel] = useState<Partial<ModelData>>({
     hairColor: '',
@@ -99,6 +129,72 @@ const Admin = () => {
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md p-8">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+              <Icon name="Lock" size={32} className="text-primary" />
+            </div>
+            <h1 className="text-3xl font-bold mb-2">Вход в админ-панель</h1>
+            <p className="text-muted-foreground">Введите логин и пароль для доступа</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Логин</label>
+              <Input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Введите логин"
+                className="w-full"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Пароль</label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Введите пароль"
+                className="w-full"
+                required
+              />
+            </div>
+
+            {loginError && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <p className="text-sm text-destructive flex items-center gap-2">
+                  <Icon name="AlertCircle" size={16} />
+                  {loginError}
+                </p>
+              </div>
+            )}
+
+            <Button type="submit" className="w-full gap-2" size="lg">
+              <Icon name="LogIn" size={18} />
+              Войти
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => window.location.href = '/'}
+              className="w-full gap-2"
+            >
+              <Icon name="ArrowLeft" size={18} />
+              Вернуться к каталогу
+            </Button>
+          </form>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b border-border bg-card">
@@ -108,10 +204,16 @@ const Admin = () => {
               <h1 className="text-3xl font-bold text-foreground mb-1">Админ-панель</h1>
               <p className="text-sm text-muted-foreground">Управление каталогом моделей</p>
             </div>
-            <Button variant="outline" onClick={() => window.location.href = '/'} className="gap-2">
-              <Icon name="ArrowLeft" size={18} />
-              К каталогу
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleLogout} className="gap-2">
+                <Icon name="LogOut" size={18} />
+                Выйти
+              </Button>
+              <Button variant="outline" onClick={() => window.location.href = '/'} className="gap-2">
+                <Icon name="ArrowLeft" size={18} />
+                К каталогу
+              </Button>
+            </div>
           </div>
         </div>
       </div>
