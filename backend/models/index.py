@@ -95,6 +95,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             with conn.cursor() as cur:
                 cur.execute('DELETE FROM models WHERE id = %s', (model_id,))
+                
+                cur.execute('SELECT COUNT(*) FROM models')
+                count = cur.fetchone()[0]
+                
+                if count == 0:
+                    cur.execute("SELECT setval('models_id_seq', 1, false)")
+                
                 conn.commit()
                 
                 return {
