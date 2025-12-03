@@ -53,7 +53,11 @@ const Admin = () => {
 
   const [models, setModels] = useState<ModelData[]>(() => {
     const saved = localStorage.getItem('models');
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) return [];
+    
+    const parsed = JSON.parse(saved);
+    localStorage.removeItem('models');
+    return [];
   });
 
   const [filters, setFilters] = useState<FilterCategories>(() => {

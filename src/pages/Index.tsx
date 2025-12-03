@@ -53,11 +53,19 @@ const Index = () => {
     const savedFilters = localStorage.getItem('filters');
     
     if (savedModels) {
-      setModels(JSON.parse(savedModels));
+      try {
+        setModels(JSON.parse(savedModels));
+      } catch {
+        localStorage.removeItem('models');
+      }
     }
     
     if (savedFilters) {
-      setFilters(JSON.parse(savedFilters));
+      try {
+        setFilters(JSON.parse(savedFilters));
+      } catch {
+        localStorage.removeItem('filters');
+      }
     }
   }, []);
 
