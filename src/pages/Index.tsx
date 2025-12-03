@@ -26,17 +26,19 @@ interface FilterCategories {
   hairTypes: string[];
 }
 
+const defaultFilters: FilterCategories = {
+  faceTypes: ['Европейская', 'Азиатская', 'Африканская', 'Латино-американская'],
+  eyeColors: ['Голубые', 'Карие', 'Черные', 'Зеленые', 'Серые'],
+  skinColors: ['Смуглая', 'Темная', 'Оливковая', 'Светлая'],
+  bodyTypes: ['Стройное', 'Спортивное', 'Худощавое', 'Пышное', 'Среднее'],
+  hairColors: ['Блондинка', 'Рыжая', 'Брюнетка', 'Шатенка', 'Пепельная блондинка'],
+  hairLengths: ['Короткая', 'Средние', 'Длинные', 'Очень длинные'],
+  hairTypes: ['Прямые', 'Вьющиеся', 'Кучерявые'],
+};
+
 const Index = () => {
   const [models, setModels] = useState<Model[]>([]);
-  const [filters, setFilters] = useState<FilterCategories>({
-    faceTypes: [],
-    eyeColors: [],
-    skinColors: [],
-    bodyTypes: [],
-    hairColors: [],
-    hairLengths: [],
-    hairTypes: [],
-  });
+  const [filters, setFilters] = useState<FilterCategories>(defaultFilters);
 
   const [selectedFaceType, setSelectedFaceType] = useState<string>('');
   const [selectedEyeColor, setSelectedEyeColor] = useState<string>('');
@@ -62,7 +64,8 @@ const Index = () => {
     
     if (savedFilters) {
       try {
-        setFilters(JSON.parse(savedFilters));
+        const parsedFilters = JSON.parse(savedFilters);
+        setFilters({...defaultFilters, ...parsedFilters});
       } catch {
         localStorage.removeItem('filters');
       }
