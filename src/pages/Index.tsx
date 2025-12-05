@@ -6,7 +6,8 @@ import Icon from '@/components/ui/icon';
 
 interface Model {
   id: number;
-  photos: string[];
+  photos?: string[];
+  photosCount?: number;
   faceType: string;
   eyeColor: string;
   skinColor: string;
@@ -39,6 +40,7 @@ const defaultFilters: FilterCategories = {
 const Index = () => {
   const [models, setModels] = useState<Model[]>([]);
   const [filters, setFilters] = useState<FilterCategories>(defaultFilters);
+  const [loadedPhotos, setLoadedPhotos] = useState<Record<number, string[]>>({});
 
   const [selectedFaceType, setSelectedFaceType] = useState<string>('');
   const [selectedEyeColor, setSelectedEyeColor] = useState<string>('');
@@ -95,7 +97,23 @@ const Index = () => {
     selectedHairType
   ].filter(Boolean).length;
 
-  const handlePhotoClick = (modelId: number, photosLength: number) => {
+  const loadModelPhotos = async (modelId: number) => {
+    if (loadedPhotos[modelId]) return;
+    
+    try {
+      const response = await fetch(`https://functions.poehali.dev/f72a0844-f274-400e-aec2-772ebc3a9106?id=${modelId}`);
+      const data = await response.json();
+      if (data.photos) {
+        setLoadedPhotos(prev => ({...prev, [modelId]: data.photos}));
+      }
+    } catch (error) {
+      console.error('Failed to load photos:', error);
+    }
+  };
+
+  const handlePhotoClick = async (modelId: number, photosLength: number) => {
+    await loadModelPhotos(modelId);
+    
     setCurrentPhotoIndex(prev => ({
       ...prev,
       [modelId]: ((prev[modelId] || 0) + 1) % photosLength
@@ -292,22 +310,25 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredModels.map((model) => {
               const photoIndex = currentPhotoIndex[model.id] || 0;
+              const photos = loadedPhotos[model.id];
+              const photosCount = model.photosCount || 0;
+              
               return (
                 <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div 
                     className="relative aspect-[3/4] bg-gradient-to-br from-primary/10 to-accent/20 cursor-pointer group"
-                    onClick={() => handlePhotoClick(model.id, model.photos.length)}
+                    onClick={() => handlePhotoClick(model.id, photosCount)}
                   >
-                    {model.photos && model.photos.length > 0 ? (
+                    {photos && photos.length > 0 ? (
                       <>
                         <img
-                          src={model.photos[photoIndex]}
+                          src={photos[photoIndex]}
                           alt={`Модель ${model.id}`}
                           className="w-full h-full object-cover"
                         />
-                        {model.photos.length > 1 && (
+                        {photos.length > 1 && (
                           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                            {model.photos.map((_, index) => (
+                            {photos.map((_, index) => (
                               <div
                                 key={index}
                                 className={`w-2 h-2 rounded-full transition-all ${
@@ -317,7 +338,7 @@ const Index = () => {
                             ))}
                           </div>
                         )}
-                        {model.photos.length > 1 && (
+                        {photos.length > 1 && (
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                             <Icon name="ChevronRight" size={48} className="text-white opacity-0 group-hover:opacity-50 transition-opacity" />
                           </div>
@@ -332,6 +353,11 @@ const Index = () => {
                           <p className="text-xs text-muted-foreground">
                             Модель #{model.id.toString().padStart(3, '0')}
                           </p>
+                          {photosCount > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              Нажмите для загрузки {photosCount} фото
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}

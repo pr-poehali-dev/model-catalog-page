@@ -15,7 +15,8 @@ import {
 
 interface ModelData {
   id: number;
-  photos: string[];
+  photos?: string[];
+  photosCount?: number;
   faceType: string;
   eyeColor: string;
   skinColor: string;
@@ -81,7 +82,22 @@ const Admin = () => {
       const modelsData = await modelsRes.json();
       const filtersData = await filtersRes.json();
       
-      setModels(modelsData);
+      const modelsWithPhotos = await Promise.all(
+        modelsData.map(async (model: ModelData) => {
+          if (model.photosCount && model.photosCount > 0) {
+            try {
+              const detailRes = await fetch(`https://functions.poehali.dev/f72a0844-f274-400e-aec2-772ebc3a9106?id=${model.id}`);
+              const detailData = await detailRes.json();
+              return { ...model, photos: detailData.photos };
+            } catch {
+              return model;
+            }
+          }
+          return model;
+        })
+      );
+      
+      setModels(modelsWithPhotos);
       setFilters({...defaultFilters, ...filtersData});
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -615,14 +631,20 @@ const Admin = () => {
                       <Card key={model.id} className="p-4">
                         <div className="flex gap-4">
                           <div className="flex gap-2">
-                            {model.photos.map((photo, index) => (
-                              <img
-                                key={index}
-                                src={photo}
-                                alt={`Модель ${model.id} - фото ${index + 1}`}
-                                className="w-20 h-28 object-cover rounded-lg"
-                              />
-                            ))}
+                            {model.photos && model.photos.length > 0 ? (
+                              model.photos.map((photo, index) => (
+                                <img
+                                  key={index}
+                                  src={photo}
+                                  alt={`Модель ${model.id} - фото ${index + 1}`}
+                                  className="w-20 h-28 object-cover rounded-lg"
+                                />
+                              ))
+                            ) : (
+                              <div className="w-20 h-28 bg-gradient-to-br from-primary/10 to-accent/20 rounded-lg flex items-center justify-center">
+                                <Icon name="User" size={32} className="text-muted-foreground" />
+                              </div>
+                            )}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-start justify-between mb-3">
