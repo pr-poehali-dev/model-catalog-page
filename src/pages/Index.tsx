@@ -53,7 +53,7 @@ const Index = () => {
   useEffect(() => {
     fetch('https://functions.poehali.dev/f72a0844-f274-400e-aec2-772ebc3a9106')
       .then(res => res.json())
-      .then(data => setModels(data))
+      .then(data => setModels(Array.isArray(data) ? data : []))
       .catch(console.error);
     
     fetch('https://functions.poehali.dev/2bd93d3a-7865-4599-bd8a-780859652347')
