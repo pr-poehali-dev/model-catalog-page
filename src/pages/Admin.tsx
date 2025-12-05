@@ -313,51 +313,51 @@ const Admin = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md p-8">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md p-8 bg-white shadow-lg">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-              <Icon name="Lock" size={32} className="text-primary" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-100 flex items-center justify-center">
+              <Icon name="Lock" size={32} className="text-purple-600" />
             </div>
-            <h1 className="text-3xl font-bold mb-2">Вход в админ-панель</h1>
-            <p className="text-muted-foreground">Введите логин и пароль для доступа</p>
+            <h1 className="text-3xl font-bold mb-2 text-gray-900">Вход в админ-панель</h1>
+            <p className="text-gray-600">Введите логин и пароль для доступа</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Логин</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">Логин</label>
               <Input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Введите логин"
-                className="w-full"
+                className="w-full border-gray-300 text-gray-900"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Пароль</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">Пароль</label>
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Введите пароль"
-                className="w-full"
+                className="w-full border-gray-300 text-gray-900"
                 required
               />
             </div>
 
             {loginError && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                <p className="text-sm text-destructive flex items-center gap-2">
+              <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                <p className="text-sm text-red-600 flex items-center gap-2">
                   <Icon name="AlertCircle" size={16} />
                   {loginError}
                 </p>
               </div>
             )}
 
-            <Button type="submit" className="w-full gap-2" size="lg">
+            <Button type="submit" className="w-full gap-2 bg-purple-600 hover:bg-purple-700 text-white" size="lg">
               <Icon name="LogIn" size={18} />
               Войти
             </Button>
@@ -366,7 +366,7 @@ const Admin = () => {
               type="button"
               variant="outline"
               onClick={() => window.location.href = '/'}
-              className="w-full gap-2"
+              className="w-full gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               <Icon name="ArrowLeft" size={18} />
               Вернуться к каталогу
