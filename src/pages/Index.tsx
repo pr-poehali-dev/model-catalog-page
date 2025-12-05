@@ -49,7 +49,7 @@ const Index = () => {
   const [selectedHairColor, setSelectedHairColor] = useState<string>('');
   const [selectedHairLength, setSelectedHairLength] = useState<string>('');
   const [selectedHairType, setSelectedHairType] = useState<string>('');
-  const [showFilters, setShowFilters] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState<Record<number, number>>({});
 
   useEffect(() => {
@@ -134,14 +134,6 @@ const Index = () => {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => window.location.href = '/admin'}
-                className="gap-2"
-              >
-                <Icon name="Settings" size={18} />
-                Админ
-              </Button>
               <Button
                 variant={showFilters ? 'default' : 'outline'}
                 onClick={() => setShowFilters(!showFilters)}
@@ -347,19 +339,32 @@ const Index = () => {
                         )}
                       </>
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center space-y-2 p-4">
-                          <div className="w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
-                            <Icon name="User" size={32} className="text-primary" />
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Модель #{model.id.toString().padStart(3, '0')}
-                          </p>
-                          {photosCount > 0 && (
-                            <p className="text-xs text-muted-foreground">
-                              Нажмите для загрузки {photosCount} фото
+                      <div className="absolute inset-0">
+                        <div 
+                          className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/30 to-muted/40"
+                          style={{
+                            backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'200\' height=\'200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.3\'/%3E%3C/svg%3E")',
+                            filter: 'blur(15px)',
+                            transform: 'scale(1.1)'
+                          }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/40 backdrop-blur-md">
+                          <div className="text-center p-8 bg-background/80 rounded-xl backdrop-blur-sm border-2 border-primary shadow-2xl transform group-hover:scale-105 transition-transform">
+                            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
+                              <Icon name="Image" size={40} className="text-primary" />
+                            </div>
+                            <p className="text-lg font-bold text-foreground mb-2">
+                              Нажмите для загрузки фото
                             </p>
-                          )}
+                            <p className="text-sm text-muted-foreground mb-1">
+                              Модель #{model.id.toString().padStart(3, '0')}
+                            </p>
+                            {photosCount > 0 && (
+                              <Badge variant="secondary" className="mt-2">
+                                {photosCount} {photosCount === 1 ? 'фото' : photosCount < 5 ? 'фото' : 'фотографий'}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
