@@ -65,16 +65,18 @@ const Index = () => {
   }, []);
 
   const filteredModels = useMemo(() => {
-    return models.filter((model) => {
-      if (selectedFaceType && model.faceType !== selectedFaceType) return false;
-      if (selectedEyeColor && model.eyeColor !== selectedEyeColor) return false;
-      if (selectedSkinColor && model.skinColor !== selectedSkinColor) return false;
-      if (selectedBodyType && model.bodyType !== selectedBodyType) return false;
-      if (selectedHairColor && model.hairColor !== selectedHairColor) return false;
-      if (selectedHairLength && model.hairLength !== selectedHairLength) return false;
-      if (selectedHairType && model.hairType !== selectedHairType) return false;
-      return true;
-    });
+    return models
+      .filter((model) => {
+        if (selectedFaceType && model.faceType !== selectedFaceType) return false;
+        if (selectedEyeColor && model.eyeColor !== selectedEyeColor) return false;
+        if (selectedSkinColor && model.skinColor !== selectedSkinColor) return false;
+        if (selectedBodyType && model.bodyType !== selectedBodyType) return false;
+        if (selectedHairColor && model.hairColor !== selectedHairColor) return false;
+        if (selectedHairLength && model.hairLength !== selectedHairLength) return false;
+        if (selectedHairType && model.hairType !== selectedHairType) return false;
+        return true;
+      })
+      .sort((a, b) => a.id - b.id);
   }, [models, selectedFaceType, selectedEyeColor, selectedSkinColor, selectedBodyType, selectedHairColor, selectedHairLength, selectedHairType]);
 
   const clearFilters = () => {
